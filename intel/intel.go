@@ -20,7 +20,7 @@ type BlastRadiusResult struct {
 	// Score contains the blast radius score for a given asset.
 	Score float32
 	// Metadata contains information about how a blast radius was calculated.
-	Metadata interface{}
+	Metadata string
 }
 
 // BlastRadius returns the blast radius of a given asset. It returns

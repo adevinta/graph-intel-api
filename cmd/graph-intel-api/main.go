@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
@@ -58,7 +59,7 @@ func readConfig() (config, error) {
 
 // intel defines the shape of the intel API exposed by the intelRESTAPI.
 type intelAPI interface {
-	BlastRadius(cfg intel.Config, identifier string, assetType string) (intel.BlastRadiusResult, error)
+	BlastRadius(identifier string, assetType string) (intel.BlastRadiusResult, error)
 }
 
 // intelRESTAPI exposes the Security Graph intel API as an HTTP REST endpoint.
@@ -80,5 +81,21 @@ func newIntelRESTAPI(intel intelAPI) *intelRESTAPI {
 }
 
 func (i *intelRESTAPI) BlastRadius(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-
+	assetType := ps.ByName("asset_type")
+	if assetType == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	identifier := ps.ByName("asset_identifier")
+	if identifier == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	
+	err, b := i.intel.BlastRadius(identifier, assetType)
+	if err := nil {
+		
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(b)
 }
