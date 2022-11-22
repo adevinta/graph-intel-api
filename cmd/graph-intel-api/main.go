@@ -4,9 +4,12 @@ package main
 
 import (
 	"errors"
+	"net/http"
 	"os"
 
+	"github.com/adevinta/graph-intel-api/intel"
 	"github.com/adevinta/graph-intel-api/log"
+	"github.com/julienschmidt/httprouter"
 )
 
 const defaultLogLevel = "info"
@@ -18,20 +21,14 @@ func main() {
 	}
 }
 
+// config defines the config parameters used by graph-intel-api.
 type config struct {
-	LogLevel                  string
-	GremlinEndpoint           string
-	NeptuneAuthMode           string
-	NeptuneRegion             string
-	AssetInventoryAPIEndpoint string
+	LogLevel string
+	intel.Config
 }
 
 // readConfig reads the configuration parameters from the environment.
 func readConfig() (config, error) {
-	inventoryEndpoint := os.Getenv("INVENTORY_ENDPOINT")
-	if inventoryEndpoint == "" {
-		return config{}, errors.New("missing INVENTORY_ENDPOINT env var")
-	}
 	gremlin := os.Getenv("GREMLIN_ENDPOINT")
 	if gremlin != "" {
 		return config{}, errors.New("missing GREMLIN_ENDPOINT env var")
@@ -49,10 +46,39 @@ func readConfig() (config, error) {
 		logLevel = level
 	}
 	cfg := config{
-		LogLevel:                  logLevel,
-		GremlinEndpoint:           gremlin,
-		NeptuneAuthMode:           neptuneAuth,
-		AssetInventoryAPIEndpoint: inventoryEndpoint,
+		LogLevel: logLevel,
+		Config: intel.Config{
+			GremlinEndpoint: gremlin,
+			NeptuneAuthMode: neptuneAuth,
+			NeptuneRegion:   neptuneRegion,
+		},
 	}
 	return cfg, nil
+}
+
+// intel defines the shape of the intel API exposed by the intelRESTAPI.
+type intelAPI interface {
+	BlastRadius(cfg intel.Config, identifier string, assetType string) (intel.BlastRadiusResult, error)
+}
+
+// intelRESTAPI exposes the Security Graph intel API as an HTTP REST endpoint.
+type intelRESTAPI struct {
+	router *httprouter.Router
+	intel  intelAPI
+}
+
+// newIntelRESTAPI creates a new intel REST API that exposed the given
+// Security Graph intel API.
+func newIntelRESTAPI(intel intelAPI) *intelRESTAPI {
+	router := httprouter.New()
+	api := &intelRESTAPI{
+		intel:  intel,
+		router: router,
+	}
+	router.GET("blast-radius/", api.BlastRadius)
+	return api
+}
+
+func (i *intelRESTAPI) BlastRadius(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
 }

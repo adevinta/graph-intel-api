@@ -25,13 +25,15 @@ paths:
           required: true
       responses:
         '200':
-          description: An object containing the blast radius score.
+          description: Returns an object containing the blast radius score.
           content:
             application/json:
               schema:
                 type: object
                 items:
                   $ref: '#/components/schemas/BlastRadiusResp'
+        '400':
+          description: Any of the mandatory parameters was not provided.
         '404':
           description: The Asset does not exist in the Security Graph.
         '422':
