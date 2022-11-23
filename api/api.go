@@ -35,7 +35,9 @@ func NewAPI(cfg Config) *API {
 	}
 }
 
-// BlastRadius returns the blast radius of a given asset. It returns
+// BlastRadius returns the blast radius of a given asset. It returns a
+// [BlastRadiusResult] with the score and the metadata about how score was
+// calculated.
 func (a *API) BlastRadius(identifier string, assetType string) (BlastRadiusResult, error) {
 	return BlastRadiusResult{}, errors.New("not implemented")
 }

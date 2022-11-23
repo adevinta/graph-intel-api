@@ -1,0 +1,35 @@
+version: "2.4"
+
+services:
+  setup:
+    image: busybox
+    depends_on:
+      # The service_healthy condition is not honored by "docker-compose run" in
+      # all docker-compose versions, but it is respected if the condition is in
+      # a transitive dependency. Thus, we have created an intermediate
+      # dependency with all the required conditions.
+      - healthchecks
+    entrypoint: ["echo", "setup done"]
+
+  healthchecks:
+    image: busybox
+    depends_on:
+      gremlin-server:
+        condition: service_healthy
+    entrypoint: ["echo", "healthchecks done"]
+
+  gremlin-server:
+    image: tinkerpop/gremlin-server:3.5.4
+    ports:
+      - 127.0.0.1:8182:8182
+    expose:
+      - 8182
+    volumes:
+      - ./gremlin-server/conf:/opt/gremlin-server/conf:ro
+    healthcheck:
+      test: ["CMD", "nc", "-z", "gremlin-server", "8182"]
+      interval: 5s
+      timeout: 10s
+      retries: 6
+    entrypoint: /opt/gremlin-server/bin/gremlin-server.sh
+    command: conf/gremlin-server.yaml
