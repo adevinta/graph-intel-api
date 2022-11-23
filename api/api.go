@@ -1,6 +1,6 @@
 // Package intel provides the API for getting all the intel information
 // exposed by the Security Graph.
-package intel
+package api
 
 import "errors"
 

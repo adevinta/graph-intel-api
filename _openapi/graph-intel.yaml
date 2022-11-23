@@ -29,15 +29,23 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                items:
-                  $ref: '#/components/schemas/BlastRadiusResp'
+                $ref: '#/components/schemas/BlastRadiusResp'
         '400':
           description: Any of the mandatory parameters was not provided.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResp'
         '404':
           description: The Asset does not exist in the Security Graph.
         '422':
           description: The Security Graph does not have enough information for calculating the blast radius of the specified asset.
+        '500':
+           description: "An unexpected error ocurred while processing a request"
+           content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResp'
 
 
 components:
@@ -53,3 +61,10 @@ components:
       required:
         - identifier
         - metadata
+    ErrorResp:
+      type: object
+      properties:
+        msg:
+          type: string
+      required:
+          - msg

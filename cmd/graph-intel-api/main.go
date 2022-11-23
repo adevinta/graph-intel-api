@@ -3,14 +3,13 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
-	"net/http"
+	"fmt"
 	"os"
 
-	"github.com/adevinta/graph-intel-api/intel"
+	intel "github.com/adevinta/graph-intel-api/api"
 	"github.com/adevinta/graph-intel-api/log"
-	"github.com/julienschmidt/httprouter"
 )
 
 const defaultLogLevel = "info"
@@ -20,6 +19,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("graph-intel-api: error reading config: %v", err)
 	}
+}
+
+func runAndServe(ctx context.Context, cfg config) error {
+	err := log.SetLevel(cfg.LogLevel)
+	if err != nil {
+		return fmt.Errorf("error setting log level: %w", err)
+	}
+
 }
 
 // config defines the config parameters used by graph-intel-api.
@@ -55,47 +62,4 @@ func readConfig() (config, error) {
 		},
 	}
 	return cfg, nil
-}
-
-// intel defines the shape of the intel API exposed by the intelRESTAPI.
-type intelAPI interface {
-	BlastRadius(identifier string, assetType string) (intel.BlastRadiusResult, error)
-}
-
-// intelRESTAPI exposes the Security Graph intel API as an HTTP REST endpoint.
-type intelRESTAPI struct {
-	router *httprouter.Router
-	intel  intelAPI
-}
-
-// newIntelRESTAPI creates a new intel REST API that exposed the given
-// Security Graph intel API.
-func newIntelRESTAPI(intel intelAPI) *intelRESTAPI {
-	router := httprouter.New()
-	api := &intelRESTAPI{
-		intel:  intel,
-		router: router,
-	}
-	router.GET("blast-radius/", api.BlastRadius)
-	return api
-}
-
-func (i *intelRESTAPI) BlastRadius(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	assetType := ps.ByName("asset_type")
-	if assetType == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	identifier := ps.ByName("asset_identifier")
-	if identifier == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	
-	err, b := i.intel.BlastRadius(identifier, assetType)
-	if err := nil {
-		
-	}
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(b)
 }
