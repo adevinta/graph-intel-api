@@ -21,9 +21,9 @@ func (r restError) Error() string {
 }
 
 func (r restError) write(w http.ResponseWriter, req *http.Request) {
-	log.Error.Printf("graph-intel-api error - error serving request to %s: %v", req.RequestURI, r)
-	w.WriteHeader(r.status)
+	log.Error.Printf("graph-intel-api - error serving request to %s: %v", req.RequestURI, r)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(r.status)
 	err := json.NewEncoder(w).Encode(r)
 	if err != nil {
 		log.Error.Printf("graph-intel-api - error generating response for request to %s: %v", req.RequestURI, err)
@@ -61,7 +61,7 @@ func NewServer(intel IntelAPI) *Server {
 		intel:  intel,
 		router: router,
 	}
-	router.GET("blast-radius/", api.BlastRadius)
+	router.GET("/v1/blast-radius", api.BlastRadius)
 	return api
 }
 
@@ -71,20 +71,21 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) BlastRadius(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	assetType := ps.ByName("asset_type")
+	params := r.URL.Query()
+	assetType := params.Get("asset_type")
 	if assetType == "" {
 		errBlastRadiusNoAssetType.write(w, r)
 		return
 	}
-	identifier := ps.ByName("asset_identifier")
+	identifier := params.Get("asset_identifier")
 	if identifier == "" {
-		errBlastRadiusNoAssetType.write(w, r)
+		errBlastRadiusNoIdentifier.write(w, r)
 		return
 	}
 
 	b, err := s.intel.BlastRadius(identifier, assetType)
 	// TODO: check if the returned error is an `assets not found error`` or an
-	// invalid a `not enough information to calculate the score` error
+	// a `not enough information to calculate the score` error
 	if err != nil {
 		err := restError{
 			status: http.StatusInternalServerError,

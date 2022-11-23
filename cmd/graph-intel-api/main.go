@@ -36,7 +36,8 @@ func runAndServe(ctx context.Context, cfg config) error {
 	api := api.NewAPI(cfg.Config)
 	restAPI := rest.NewServer(api)
 	mux := http.NewServeMux()
-	mux.Handle("/v1/", restAPI)
+	mux.Handle("/", restAPI)
+	log.Info.Printf("graph-intel-api - listening on address %s", cfg.ListenAddr)
 	err = http.ListenAndServe(cfg.ListenAddr, mux)
 	if err == http.ErrServerClosed {
 		log.Info.Printf("graph-intel-api - server closed")
