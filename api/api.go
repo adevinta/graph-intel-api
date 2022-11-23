@@ -23,7 +23,19 @@ type BlastRadiusResult struct {
 	Metadata string
 }
 
+// API implements the Intel API of the Security Graph.
+type API struct {
+	cfg Config
+}
+
+// NewAPI creates a new intel API using the given config.
+func NewAPI(cfg Config) *API {
+	return &API{
+		cfg: cfg,
+	}
+}
+
 // BlastRadius returns the blast radius of a given asset. It returns
-func BlastRadius(cfg Config, identifier string, assetType string) (BlastRadiusResult, error) {
+func (a *API) BlastRadius(identifier string, assetType string) (BlastRadiusResult, error) {
 	return BlastRadiusResult{}, errors.New("not implemented")
 }

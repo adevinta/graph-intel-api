@@ -26,7 +26,7 @@ func (r restError) write(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(r)
 	if err != nil {
-		log.Error.Printf("graph-intel-api error - error generating response for request to %s: %v", req.RequestURI, err)
+		log.Error.Printf("graph-intel-api - error generating response for request to %s: %v", req.RequestURI, err)
 	}
 }
 
@@ -53,7 +53,7 @@ type Server struct {
 	intel  IntelAPI
 }
 
-// NewServer creates a new intel REST API that exposed the given
+// NewServer creates a new intel REST API that exposes the given
 // Security Graph intel API.
 func NewServer(intel IntelAPI) *Server {
 	router := httprouter.New()
@@ -63,6 +63,11 @@ func NewServer(intel IntelAPI) *Server {
 	}
 	router.GET("blast-radius/", api.BlastRadius)
 	return api
+}
+
+// ServeHTTP server the routes exposed by the REST API.
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.router.ServeHTTP(w, r)
 }
 
 func (s *Server) BlastRadius(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -78,6 +83,8 @@ func (s *Server) BlastRadius(w http.ResponseWriter, r *http.Request, ps httprout
 	}
 
 	b, err := s.intel.BlastRadius(identifier, assetType)
+	// TODO: check if the returned error is an `assets not found error`` or an
+	// invalid a `not enough information to calculate the score` error
 	if err != nil {
 		err := restError{
 			status: http.StatusInternalServerError,
