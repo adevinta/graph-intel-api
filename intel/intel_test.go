@@ -1,7 +1,7 @@
 package intel
 
 import (
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/adevinta/graph-intel-api/gremlin"
@@ -12,7 +12,12 @@ import (
 
 const gremlinEndpoint = "ws://127.0.0.1:8182/gremlin"
 
-func TestAPIBlastRadius(t *testing.T) {
+var wantBlastRadius = BlastRadiusResult{
+	Score:    0.3106893106893107,
+	Metadata: "net",
+}
+
+func setupGraph() error {
 	gremlinConfig := gremlin.Config{
 		Endpoint:   gremlinEndpoint,
 		AuthMode:   "plain",
@@ -20,23 +25,24 @@ func TestAPIBlastRadius(t *testing.T) {
 	}
 	conn, err := gremlin.NewConnection(gremlinConfig)
 	if err != nil {
-		t.Fatalf("error creating Gremlin connection: %v", err)
+		return fmt.Errorf("error creating Gremlin connection: %w", err)
 	}
 
 	_, err = conn.Query(func(g *gremlingo.GraphTraversalSource) ([]*gremlingo.Result, error) {
-		err := <-g.
-			AddV("Universe").Property("namespace", "altimeter").Property("version", 1).As("u0").
-			AddV("altimeter_snapshot").Property("timestamp", 0).As("s0").
-			AddV("ec2:network-interface").Property("public_ip", "1.2.3.4").Property("public_dns_name", "example.com").Property("status", "in-use").As("ni0").
-			AddV("ec2:security-group").As("sg0").
-			AddV("egress_rule").As("er0").
-			AddV("ip_range").As("r0").
-			AddV("user_id_group_pairs").As("uigp0").
-			AddV("ingress_rule").As("ir0").
-			AddV("ec2:security-group").As("sg1").
-			AddV("ec2:instance").As("i0").
-			AddV("egress_rule").As("er1").
-			AddV("ip_range").As("r1").
+		<-g.V().Drop().Iterate()
+		<-g.
+			AddV("Universe").Property(gremlingo.T.Id, "u0").Property("namespace", "altimeter").Property("version", 1).As("u0").
+			AddV("altimeter_snapshot").Property(gremlingo.T.Id, "s0").Property("timestamp", 0).As("s0").
+			AddV("ec2:network-interface").Property(gremlingo.T.Id, "ni0").Property("public_ip", "1.2.3.4").Property("public_dns_name", "example.com").Property("status", "in-use").As("ni0").
+			AddV("ec2:security-group").Property(gremlingo.T.Id, "sg0").As("sg0").
+			AddV("egress_rule").Property(gremlingo.T.Id, "er0").As("er0").
+			AddV("ip_range").Property(gremlingo.T.Id, "r0").As("r0").
+			AddV("user_id_group_pairs").Property(gremlingo.T.Id, "uigp0").As("uigp0").
+			AddV("ingress_rule").Property(gremlingo.T.Id, "ir0").As("ir0").
+			AddV("ec2:security-group").Property(gremlingo.T.Id, "sg1").As("sg1").
+			AddV("ec2:instance").Property(gremlingo.T.Id, "i0").As("i0").
+			AddV("egress_rule").Property(gremlingo.T.Id, "er1").As("er1").
+			AddV("ip_range").Property(gremlingo.T.Id, "r1").As("r1").
 			AddE("universe_of").From("u0").To("s0").
 			AddE("includes").From("s0").To("ni0").
 			AddE("includes").From("s0").To("sg0").
@@ -58,67 +64,58 @@ func TestAPIBlastRadius(t *testing.T) {
 			AddE("egress_rule").From("sg1").To("er1").
 			AddE("ip_range").From("er1").To("r1").
 			Iterate()
-		return nil, err
-	})
-	if err != nil {
-		t.Fatalf("error executing Gremlin query: %v", err)
-	}
-
-	want := BlastRadiusResult{
-		Score:    1234,
-		Metadata: "net",
-	}
-
-	cfg := Config{
-		GremlinConfig:        gremlinConfig,
-		ResolveTimeoutMs:     60000,
-		BlastRadiusTimeoutMs: 60000,
-	}
-	intelAPI, err := NewAPI(cfg)
-	if err != nil {
-		t.Fatalf("error creating intel API: %v", err)
-	}
-
-	got, err := intelAPI.BlastRadius("IP", "1.2.3.4")
-	if err != nil {
-		t.Fatalf("error calculating Blast Radius for IP: %v", err)
-	}
-
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Fatalf("scores mismatch for IP (-want +got):\n%v", diff)
-	}
-
-	got, err = intelAPI.BlastRadius("Hostname", "example.com")
-	if err != nil {
-		t.Fatalf("error calculating Blast Radius for Hostname: %v", err)
-	}
-
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Fatalf("scores mismatch for Hostname (-want +got):\n%v", diff)
-	}
-}
-
-func TestAPIBlastRadius_NotFound(t *testing.T) {
-	gremlinConfig := gremlin.Config{
-		Endpoint:   gremlinEndpoint,
-		AuthMode:   "plain",
-		RetryLimit: 1,
-	}
-	conn, err := gremlin.NewConnection(gremlinConfig)
-	if err != nil {
-		t.Fatalf("error creating Gremlin connection: %v", err)
-	}
-
-	_, err = conn.Query(func(g *gremlingo.GraphTraversalSource) ([]*gremlingo.Result, error) {
-		<-g.V().Drop().Iterate()
 		return nil, nil
 	})
 	if err != nil {
-		t.Fatalf("error executing Gremlin query: %v", err)
+		return fmt.Errorf("error executing Gremlin query: %w", err)
+	}
+
+	return nil
+}
+
+func TestAPIBlastRadius_IP(t *testing.T) {
+	tests := []struct {
+		name       string
+		typ        string
+		identifier string
+		wantNilErr bool
+	}{
+		{
+			name:       "IP",
+			typ:        "IP",
+			identifier: "1.2.3.4",
+			wantNilErr: true,
+		},
+		{
+			name:       "Hostname",
+			typ:        "Hostname",
+			identifier: "example.com",
+			wantNilErr: true,
+		},
+		{
+			name:       "not found",
+			typ:        "Hostname",
+			identifier: "unknown",
+			wantNilErr: false,
+		},
+		{
+			name:       "invalid type",
+			typ:        "inunknown",
+			identifier: "1.2.3.4",
+			wantNilErr: false,
+		},
+	}
+
+	if err := setupGraph(); err != nil {
+		t.Fatalf("error setting up the initial graph: %v", err)
 	}
 
 	cfg := Config{
-		GremlinConfig:        gremlinConfig,
+		GremlinConfig: gremlin.Config{
+			Endpoint:   gremlinEndpoint,
+			AuthMode:   "plain",
+			RetryLimit: 1,
+		},
 		ResolveTimeoutMs:     60000,
 		BlastRadiusTimeoutMs: 60000,
 	}
@@ -127,8 +124,21 @@ func TestAPIBlastRadius_NotFound(t *testing.T) {
 		t.Fatalf("error creating intel API: %v", err)
 	}
 
-	_, err = intelAPI.BlastRadius("IP", "1.2.3.4")
-	if !errors.Is(err, ErrNotFound) {
-		t.Fatalf("unexpected error: want=%v got=%v", ErrNotFound, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := intelAPI.BlastRadius(tt.typ, tt.identifier)
+
+			if (err == nil) != tt.wantNilErr {
+				t.Fatalf("unexpected error: wantNilErr=%v, got=%v", tt.wantNilErr, err)
+			}
+
+			if err != nil {
+				return
+			}
+
+			if diff := cmp.Diff(wantBlastRadius, got); diff != "" {
+				t.Errorf("Blast Radius scores mismatch (-want +got):\n%v", diff)
+			}
+		})
 	}
 }
