@@ -3,7 +3,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -34,25 +33,21 @@ func main() {
 		log.Fatalf("graph-intel-api: error reading config: %v", err)
 	}
 
-	if err := runAndServe(context.Background(), cfg); err != nil {
+	if err := log.SetLevel(cfg.LogLevel); err != nil {
+		log.Fatalf("error setting log level: %v", err)
+	}
+
+	if err := run(cfg); err != nil {
 		log.Fatalf("graph-intel-api: error running server %v", err)
 	}
 }
 
-// runAndServe serves the actual API.
-func runAndServe(ctx context.Context, cfg config) error {
-	if err := log.SetLevel(cfg.LogLevel); err != nil {
-		return fmt.Errorf("error setting log level: %w", err)
-	}
-
-	intelAPI, err := intel.NewAPI(cfg.IntelConfig)
+// run does the actual work.
+func run(cfg config) error {
+	mux, err := setupMux(cfg.IntelConfig)
 	if err != nil {
-		return fmt.Errorf("error creating intel API: %w", err)
+		return fmt.Errorf("could not set up mux: %w", err)
 	}
-
-	restAPI := rest.NewAPI(intelAPI)
-	mux := http.NewServeMux()
-	mux.Handle("/", restAPI)
 
 	log.Info.Printf("graph-intel-api: listening on address %s", cfg.ListenAddr)
 	err = http.ListenAndServe(cfg.ListenAddr, mux)
@@ -61,6 +56,21 @@ func runAndServe(ctx context.Context, cfg config) error {
 		return nil
 	}
 	return err
+}
+
+// setupMux returns an [http.Handler] configured with the provided command
+// config.
+func setupMux(intelConfig intel.Config) (http.Handler, error) {
+	intelAPI, err := intel.NewAPI(intelConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error creating intel API: %w", err)
+	}
+
+	restAPI := rest.NewAPI(intelAPI)
+	mux := http.NewServeMux()
+	mux.Handle("/", restAPI)
+
+	return mux, nil
 }
 
 // config defines the config parameters used by graph-intel-api.
