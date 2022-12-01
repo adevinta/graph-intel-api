@@ -14,6 +14,9 @@ import (
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
+// maxQueryDepth is the maximum depth traversed in Gremlin queries.
+const maxQueryDepth = int32(15)
+
 // ErrNotFound is returned when an entity is not found.
 var ErrNotFound = errors.New("not found")
 
@@ -240,7 +243,7 @@ func (api API) netBlastRadius(vid string) (float64, error) {
 					).
 					SimplePath(),
 			).
-			Times(int32(15)).
+			Times(maxQueryDepth).
 			Emit().
 			Project("id", "label", "steps").
 			By(gremlingo.T__.Id()).
