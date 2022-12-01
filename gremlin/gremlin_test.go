@@ -67,6 +67,6 @@ func TestConnectionQuery(t *testing.T) {
 	}
 
 	if diff := cmp.Diff(wantVertices, got); diff != "" {
-		t.Errorf("messages mismatch (-want +got):\n%v", diff)
+		t.Errorf("vertices mismatch (-want +got):\n%v", diff)
 	}
 }

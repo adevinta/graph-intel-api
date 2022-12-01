@@ -119,7 +119,7 @@ func TestAPIBlastRadius(t *testing.T) {
 			res.Body.Close()
 
 			if diff := cmp.Diff(tt.wantResp, got); diff != "" {
-				t.Errorf("messages mismatch (-want +got):\n%v", diff)
+				t.Errorf("responses mismatch (-want +got):\n%v", diff)
 			}
 		})
 	}
