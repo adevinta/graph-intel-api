@@ -1,13 +1,13 @@
 openapi: 3.0.3
 info:
-  title: graph-intel
+  title: graph-intel-api
   description: Security Graph. Intel API.
-  version: 0.0.1
+  version: 1.0.0
 
 paths:
   /v1/blast-radius:
     get:
-      summary: Returns the blast radius of a given asset given its identifier and type.
+      summary: Returns the blast radius of a given asset given its type and identifier.
       tags:
         - Blast Radius
       parameters:
@@ -38,19 +38,19 @@ paths:
                 $ref: '#/components/schemas/ErrorResp'
         '404':
           description: The Asset does not exist in the Security Graph.
-        '422':
-          description: The Security Graph does not have enough information for calculating the blast radius of the specified asset.
+          content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/ErrorResp'
         '500':
-           description: "An unexpected error ocurred while processing a request"
-           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResp'
-
+          description: An unexpected error ocurred while processing a request
+          content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/ErrorResp'
 
 components:
   schemas:
-    # Blast Radius
     BlastRadiusResp:
       type: object
       properties:
@@ -59,7 +59,7 @@ components:
         metadata:
           type: string
       required:
-        - identifier
+        - score
         - metadata
     ErrorResp:
       type: object
