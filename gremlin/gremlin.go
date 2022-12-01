@@ -134,19 +134,19 @@ type QueryFunc func(*gremlingo.GraphTraversalSource) ([]*gremlingo.Result, error
 // Query executes cf taking care of the authentication, reconnections and
 // retries.
 func (conn Connection) Query(cf QueryFunc) (results []*gremlingo.Result, err error) {
-	for i := 0; i < conn.cfg.RetryLimit; i++ {
+	for i := 0; i < conn.cfg.RetryLimit+1; i++ {
 		results, err = conn.execQuery(cf)
 		if err == nil {
 			return results, nil
 		}
 
-		log.Debug.Printf("error executing query (%v/%v): %v", i+1, conn.cfg.RetryLimit, err)
+		log.Debug.Printf("error executing query (%v/%v): %v", i+1, conn.cfg.RetryLimit+1, err)
 
 		if strings.Contains(err.Error(), `"code":"TimeLimitExceededException"`) {
 			return nil, ErrTimeout
 		}
 
-		if i < conn.cfg.RetryLimit-1 {
+		if i < conn.cfg.RetryLimit {
 			jitter := time.Duration(rand.Int63n(1000)) * time.Millisecond
 			t := conn.cfg.RetryDuration + jitter
 

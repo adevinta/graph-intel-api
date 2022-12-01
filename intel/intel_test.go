@@ -19,9 +19,8 @@ var wantBlastRadius = BlastRadiusResult{
 
 func setupGraph() error {
 	gremlinConfig := gremlin.Config{
-		Endpoint:   gremlinEndpoint,
-		AuthMode:   "plain",
-		RetryLimit: 1,
+		Endpoint: gremlinEndpoint,
+		AuthMode: "plain",
 	}
 	conn, err := gremlin.NewConnection(gremlinConfig)
 	if err != nil {
@@ -112,9 +111,8 @@ func TestAPIBlastRadius_IP(t *testing.T) {
 
 	cfg := Config{
 		GremlinConfig: gremlin.Config{
-			Endpoint:   gremlinEndpoint,
-			AuthMode:   "plain",
-			RetryLimit: 1,
+			Endpoint: gremlinEndpoint,
+			AuthMode: "plain",
 		},
 		ResolveTimeoutMs:     60000,
 		BlastRadiusTimeoutMs: 60000,

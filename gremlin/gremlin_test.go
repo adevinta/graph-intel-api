@@ -45,9 +45,8 @@ func TestConnectionQuery(t *testing.T) {
 	}
 
 	cfg := Config{
-		Endpoint:   gremlinEndpoint,
-		AuthMode:   "plain",
-		RetryLimit: 1,
+		Endpoint: gremlinEndpoint,
+		AuthMode: "plain",
 	}
 	conn, err := NewConnection(cfg)
 	if err != nil {
