@@ -13,6 +13,16 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+type blastRadiusParams struct {
+	typ        string
+	identifier string
+}
+
+type blastRadiusResp struct {
+	Score    float64 `json:"score"`
+	Metadata string  `json:"metadata"`
+}
+
 func TestAPIBlastRadius(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -123,16 +133,6 @@ func TestAPIBlastRadius(t *testing.T) {
 			}
 		})
 	}
-}
-
-type blastRadiusParams struct {
-	typ        string
-	identifier string
-}
-
-type blastRadiusResp struct {
-	Score    float64 `json:"score"`
-	Metadata string  `json:"metadata"`
 }
 
 type blastRadiusMock struct {
