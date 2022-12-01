@@ -2,7 +2,7 @@
 LOG_LEVEL=debug
 
 # Listen address of graph-intel-api.
-LISTER_ADDR=:8000
+LISTEN_ADDR=:8000
 
 # Gremlin configuration parameters.
 GREMLIN_ENDPOINT=ws://127.0.0.1:8182/gremlin
