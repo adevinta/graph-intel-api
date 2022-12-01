@@ -1,0 +1,16 @@
+# Log level (valid values: info, debug, error, disabled).
+LOG_LEVEL=debug
+
+# Listen address of graph-intel-api.
+LISTER_ADDR=:8000
+
+# Gremlin configuration parameters.
+GREMLIN_ENDPOINT=ws://127.0.0.1:8182/gremlin
+GREMLIN_AUTH_MODE=plain
+AWS_REGION=
+GREMLIN_RETRY_LIMIT=5
+GREMLIN_RETRY_DURATION=5s
+
+# Intel configuration parameters.
+INTEL_RESOLVE_TIMEOUT_MS=60000
+INTEL_BLAST_RADIUS_TIMEOUT_MS=60000
