@@ -133,9 +133,9 @@ type QueryFunc func(*gremlingo.GraphTraversalSource) ([]*gremlingo.Result, error
 
 // Query executes cf taking care of the authentication, reconnections and
 // retries.
-func (conn Connection) Query(cf QueryFunc) ([]*gremlingo.Result, error) {
+func (conn Connection) Query(cf QueryFunc) (results []*gremlingo.Result, err error) {
 	for i := 0; i < conn.cfg.RetryLimit; i++ {
-		results, err := conn.execQuery(cf)
+		results, err = conn.execQuery(cf)
 		if err == nil {
 			return results, nil
 		}
@@ -155,7 +155,7 @@ func (conn Connection) Query(cf QueryFunc) ([]*gremlingo.Result, error) {
 		}
 	}
 
-	return nil, errors.New("max retries exceeded")
+	return nil, fmt.Errorf("max retries exceeded: %w", err)
 }
 
 // execQuery executes cf in the context of a new remote Gremlin connection.
