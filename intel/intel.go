@@ -59,11 +59,11 @@ func NewAPI(cfg Config) (API, error) {
 // score for a given asset.
 type BlastRadiusResult struct {
 	// Score contains the blast radius score for a given asset.
-	Score float64
+	Score float64 `json:"score"`
 
 	// Metadata contains information about how a blast radius was
 	// calculated.
-	Metadata string
+	Metadata string `json:"metadata"`
 }
 
 // BlastRadius returns the blast radius of a given asset. It returns a
