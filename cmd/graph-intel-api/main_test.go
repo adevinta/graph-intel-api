@@ -15,10 +15,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-const (
-	gremlinEndpoint = "ws://127.0.0.1:8182/gremlin"
-	listenAddr      = "127.0.0.1:6060"
-)
+const gremlinEndpoint = "ws://127.0.0.1:8182/gremlin"
 
 type blastRadiusResp struct {
 	Score    float64 `json:"score"`
