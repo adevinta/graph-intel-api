@@ -27,7 +27,7 @@ var wantBlastRadiusResp = blastRadiusResp{
 	Metadata: "net",
 }
 
-func setupGraph() error {
+func setupBlastRadiusGraph() error {
 	gremlinConfig := gremlin.Config{
 		Endpoint: gremlinEndpoint,
 		AuthMode: "plain",
@@ -83,7 +83,7 @@ func setupGraph() error {
 }
 
 func TestSetupMux_BlastRadius(t *testing.T) {
-	if err := setupGraph(); err != nil {
+	if err := setupBlastRadiusGraph(); err != nil {
 		t.Fatalf("error setting up the initial graph: %v", err)
 	}
 

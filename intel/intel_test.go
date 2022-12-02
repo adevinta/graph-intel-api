@@ -12,12 +12,12 @@ import (
 
 const gremlinEndpoint = "ws://127.0.0.1:8182/gremlin"
 
-var wantBlastRadius = BlastRadiusResult{
+var wantBlastRadiusResult = BlastRadiusResult{
 	Score:    0.3106893106893107,
 	Metadata: "net",
 }
 
-func setupGraph() error {
+func setupBlastRadiusGraph() error {
 	gremlinConfig := gremlin.Config{
 		Endpoint: gremlinEndpoint,
 		AuthMode: "plain",
@@ -72,7 +72,7 @@ func setupGraph() error {
 	return nil
 }
 
-func TestAPIBlastRadius_IP(t *testing.T) {
+func TestAPIBlastRadius(t *testing.T) {
 	tests := []struct {
 		name       string
 		typ        string
@@ -105,7 +105,7 @@ func TestAPIBlastRadius_IP(t *testing.T) {
 		},
 	}
 
-	if err := setupGraph(); err != nil {
+	if err := setupBlastRadiusGraph(); err != nil {
 		t.Fatalf("error setting up the initial graph: %v", err)
 	}
 
@@ -134,7 +134,7 @@ func TestAPIBlastRadius_IP(t *testing.T) {
 				return
 			}
 
-			if diff := cmp.Diff(wantBlastRadius, got); diff != "" {
+			if diff := cmp.Diff(wantBlastRadiusResult, got); diff != "" {
 				t.Errorf("Blast Radius scores mismatch (-want +got):\n%v", diff)
 			}
 		})
