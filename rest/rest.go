@@ -111,6 +111,7 @@ func (api API) BlastRadius(w http.ResponseWriter, r *http.Request, ps httprouter
 			errNotFound.write(w, r)
 			return
 		}
+		log.Error.Printf("graph-intel-api: error calculating the blast radius for the asset: %s with type: %s: %v", identifier, typ, err)
 		errInternalServerError.write(w, r)
 		return
 	}
