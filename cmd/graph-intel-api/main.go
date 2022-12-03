@@ -3,11 +3,14 @@
 package main
 
 import (
+	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/adevinta/graph-intel-api/gremlin"
@@ -28,6 +31,15 @@ const (
 )
 
 func main() {
+	cfile := flag.String("c", "", "optional .env config file")
+	flag.Parse()
+	if *cfile != "" {
+		file := os.Args[2]
+		err := setEnv(file)
+		if err != nil {
+			log.Fatalf("graph-intel-api: error reading config file %s: %v", file, err)
+		}
+	}
 	cfg, err := readConfig()
 	if err != nil {
 		log.Fatalf("graph-intel-api: error reading config: %v", err)
@@ -159,4 +171,30 @@ func readConfig() (cfg config, err error) {
 		},
 	}
 	return cfg, nil
+}
+
+func setEnv(file string) error {
+	fd, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+	defer fd.Close() // nolint
+	scanner := bufio.NewScanner(fd)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if len(line) < 1 {
+			continue
+		}
+		if line[0] == '#' {
+			continue
+		}
+		parts := strings.Split(line, "=")
+		if len(parts) < 2 {
+			continue
+		}
+
+		os.Setenv(parts[0], parts[1])
+	}
+	return nil
 }
