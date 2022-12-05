@@ -1,0 +1,70 @@
+openapi: 3.0.3
+info:
+  title: graph-intel-api
+  description: Security Graph. Intel API.
+  version: 1.0.0
+
+paths:
+  /v1/blast-radius:
+    get:
+      summary: Returns the blast radius of a given asset given its type and identifier.
+      tags:
+        - Blast Radius
+      parameters:
+        - in: query
+          name: asset_type
+          description: Type of the asset.
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: asset_identifier
+          description: Identifier of the asset.
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Returns an object containing the blast radius score.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlastRadiusResp'
+        '400':
+          description: Any of the mandatory parameters was not provided.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResp'
+        '404':
+          description: The Asset does not exist in the Security Graph.
+          content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/ErrorResp'
+        '500':
+          description: An unexpected error ocurred while processing a request
+          content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/ErrorResp'
+
+components:
+  schemas:
+    BlastRadiusResp:
+      type: object
+      properties:
+        score:
+          type: number
+        metadata:
+          type: string
+      required:
+        - score
+        - metadata
+    ErrorResp:
+      type: object
+      properties:
+        msg:
+          type: string
+      required:
+          - msg
