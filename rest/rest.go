@@ -26,13 +26,13 @@ func (r restError) Error() string {
 
 // write writes an error response.
 func (r restError) write(w http.ResponseWriter, req *http.Request) {
-	log.Error.Printf("graph-intel-api: error serving request to %s: %v", req.RequestURI, r)
+	log.Error.Printf("graph-intel-api: rest: error serving request to %s: %v", req.RequestURI, r)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(r.status)
 
 	if err := json.NewEncoder(w).Encode(r); err != nil {
-		log.Error.Printf("graph-intel-api: error generating response for request to %s: %v", req.RequestURI, err)
+		log.Error.Printf("graph-intel-api: rest: error generating response for request to %s: %v", req.RequestURI, err)
 	}
 }
 
@@ -111,6 +111,7 @@ func (api API) BlastRadius(w http.ResponseWriter, r *http.Request, ps httprouter
 			errNotFound.write(w, r)
 			return
 		}
+		log.Error.Printf("graph-intel-api: rest: error calculating Blast Radius: %v", err)
 		errInternalServerError.write(w, r)
 		return
 	}

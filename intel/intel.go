@@ -100,7 +100,7 @@ func (api API) resolveAsset(typ, identifier string) (vid string, err error) {
 			return vid, nil
 		}
 
-		log.Debug.Printf("could not find hostname %q: fallback to DNS lookup", identifier)
+		log.Debug.Printf("graph-intel-api: intel: could not find hostname %q: fallback to DNS lookup", identifier)
 
 		ips, err := api.resolver.LookupHost(context.Background(), identifier)
 		if err != nil {
@@ -110,6 +110,10 @@ func (api API) resolveAsset(typ, identifier string) (vid string, err error) {
 		for _, ip := range ips {
 			vid, err = api.resolveIP(ip)
 			if err == nil {
+				return vid, nil
+			}
+			if err != ErrNotFound {
+				// Unexpected error. Abort DNS fallback.
 				break
 			}
 		}

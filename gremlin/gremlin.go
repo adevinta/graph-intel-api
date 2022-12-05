@@ -20,7 +20,7 @@ import (
 // emptyStringSHA256 is the hex encoded sha256 value of an empty string.
 const emptyStringSHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
-// ErrNotFound is returned when a Gremlin query times out.
+// ErrTimeout is returned when a Gremlin query times out.
 var ErrTimeout = errors.New("timeout error")
 
 // Config contains the configuration parameters needed to interact with a
@@ -53,7 +53,7 @@ type Connection struct {
 	h   connHandler
 }
 
-// Connection creates a [Connection] with the provided configuration.
+// NewConnection creates a [Connection] with the provided configuration.
 func NewConnection(cfg Config) (Connection, error) {
 	var connHandler connHandler
 
@@ -81,7 +81,7 @@ func connectNeptuneIam(cfg Config) (*gremlingo.DriverRemoteConnection, error) {
 		return nil, fmt.Errorf("error getting AWS auth headers: %v", err)
 	}
 
-	log.Debug.Printf("connecting to Neptune")
+	log.Debug.Printf("graph-intel-api: gremlin: connecting to Neptune")
 	conn, err := gremlingo.NewDriverRemoteConnection(cfg.Endpoint, func(settings *gremlingo.DriverRemoteConnectionSettings) {
 		settings.AuthInfo = gremlingo.HeaderAuthInfo(auth)
 		settings.LogVerbosity = gremlingo.Off
@@ -92,7 +92,7 @@ func connectNeptuneIam(cfg Config) (*gremlingo.DriverRemoteConnection, error) {
 // connectPlain is a [connHandler] for Gremlin server that creates an
 // unauthenticated connection.
 func connectPlain(cfg Config) (*gremlingo.DriverRemoteConnection, error) {
-	log.Debug.Printf("connecting to Gremlin server")
+	log.Debug.Printf("graph-intel-api: gremlin: connecting to Gremlin server")
 	conn, err := gremlingo.NewDriverRemoteConnection(cfg.Endpoint, func(settings *gremlingo.DriverRemoteConnectionSettings) {
 		settings.LogVerbosity = gremlingo.Off
 	})
@@ -102,7 +102,7 @@ func connectPlain(cfg Config) (*gremlingo.DriverRemoteConnection, error) {
 // getNeptuneAuth returns the AWS auth headers required to interact with
 // Neptune.
 func getNeptuneAuth(ctx context.Context, endpoint, region string) (http.Header, error) {
-	log.Debug.Printf("getting Neptune auth")
+	log.Debug.Printf("graph-intel-api: gremlin: getting Neptune auth")
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -140,7 +140,7 @@ func (conn Connection) Query(cf QueryFunc) (results []*gremlingo.Result, err err
 			return results, nil
 		}
 
-		log.Debug.Printf("error executing query (%v/%v): %v", i+1, conn.cfg.RetryLimit+1, err)
+		log.Debug.Printf("graph-intel-api: gremlin: error executing query (%v/%v): %v", i+1, conn.cfg.RetryLimit+1, err)
 
 		if strings.Contains(err.Error(), `"code":"TimeLimitExceededException"`) {
 			return nil, ErrTimeout
@@ -150,7 +150,7 @@ func (conn Connection) Query(cf QueryFunc) (results []*gremlingo.Result, err err
 			jitter := time.Duration(rand.Int63n(1000)) * time.Millisecond
 			t := conn.cfg.RetryDuration + jitter
 
-			log.Debug.Printf("retrying in %v", t)
+			log.Debug.Printf("graph-intel-api: gremlin: retrying in %v", t)
 			time.Sleep(t)
 		}
 	}

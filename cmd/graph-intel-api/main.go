@@ -34,7 +34,7 @@ func main() {
 	}
 
 	if err := log.SetLevel(cfg.LogLevel); err != nil {
-		log.Fatalf("error setting log level: %v", err)
+		log.Fatalf("graph-intel-api: error setting log level: %v", err)
 	}
 
 	if err := run(cfg); err != nil {
